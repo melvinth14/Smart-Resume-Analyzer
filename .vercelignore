@@ -1,0 +1,13 @@
+backend/.venv
+backend/__pycache__
+frontend/node_modules
+.git
+*.pyc
+*.egg-info
+.env.local
+.env.*.local
+test_*.py
+analyze_dataset.py
+debug_keywords.py
+download_dataset.py
+find_ml_resume.py
