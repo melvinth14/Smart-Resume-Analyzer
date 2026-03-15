@@ -249,8 +249,18 @@ ROLE_SKILLS = {
 
 def detect_role(job_text: str) -> str:
     lowered = job_text.lower()
+
+    # Check SPECIFIC roles FIRST (ML, DevOps) before GENERIC ones (Frontend, Backend)
+    # This prevents "UI" in a ML job from being detected as frontend
+    if any(term in lowered for term in ROLE_KEYWORDS["data"]):
+        return "data"
+    if any(term in lowered for term in ROLE_KEYWORDS["devops"]):
+        return "devops"
+
+    # Then check generic roles
     frontend = any(term in lowered for term in ROLE_KEYWORDS["frontend"])
     backend = any(term in lowered for term in ROLE_KEYWORDS["backend"])
+
     if frontend and backend:
         return "fullstack"
     if any(term in lowered for term in ROLE_KEYWORDS["fullstack"]):
@@ -259,10 +269,7 @@ def detect_role(job_text: str) -> str:
         return "frontend"
     if backend:
         return "backend"
-    if any(term in lowered for term in ROLE_KEYWORDS["data"]):
-        return "data"
-    if any(term in lowered for term in ROLE_KEYWORDS["devops"]):
-        return "devops"
+
     return "general"
 
 

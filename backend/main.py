@@ -53,10 +53,9 @@ def health_check():
 
 
 class AnalyzeRequest(BaseModel):
-    resume_url: HttpUrl | None = None
     job_description: str
-    resume_text: str | None = None
     resume_file: str | None = None
+    resume_text: str | None = None
     resume_id: Optional[UUID] = None
 
 
@@ -246,54 +245,36 @@ def safe_score(value, fallback: int) -> int:
 
 @app.post("/analyze")
 def analyze(payload: AnalyzeRequest):
-    # Validate job description (only truly required field)
+    # Validate inputs
     if not payload.job_description.strip():
         raise HTTPException(status_code=400, detail="Job description is required")
 
     resume_text = ""
 
-    # Priority 1: Handle base64 encoded PDF file (preferred)
+    # Try PDF file first
     if payload.resume_file:
         try:
             pdf_bytes = base64.b64decode(payload.resume_file)
             resume_text = normalize_text(extract_text_from_pdf(pdf_bytes))
             if not resume_text:
                 raise HTTPException(
-                    status_code=400, detail="Could not extract text from PDF. Try pasting text instead."
+                    status_code=400, detail="Could not extract text from PDF. File may be corrupted."
                 )
         except HTTPException:
             raise
         except Exception as exc:
-            raise HTTPException(
-                status_code=400, detail=f"PDF processing failed: {str(exc)}. Try pasting text instead."
-            )
+            raise HTTPException(status_code=400, detail=f"Error reading PDF: {str(exc)}")
 
-    # Priority 2: Handle pasted resume text
+    # Fallback to resume text
     elif payload.resume_text:
         resume_text = normalize_text(payload.resume_text)
-        if not resume_text.strip():
-            raise HTTPException(status_code=400, detail="Resume text cannot be empty")
+        if not resume_text:
+            raise HTTPException(status_code=400, detail="Resume text is empty")
 
-    # Priority 3: Handle resume URL
-    elif payload.resume_url:
-        try:
-            pdf_bytes = download_pdf(str(payload.resume_url))
-            resume_text = normalize_text(extract_text_from_pdf(pdf_bytes))
-            if not resume_text:
-                raise HTTPException(
-                    status_code=400, detail="Could not extract text from URL. Try uploading or pasting instead."
-                )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(
-                status_code=400, detail=f"URL processing failed: {str(exc)}"
-            )
-
-    # No resume provided at all
+    # No resume provided
     else:
         raise HTTPException(
-            status_code=400, detail="Please provide resume: upload PDF file or paste text"
+            status_code=400, detail="Resume required: Upload PDF or paste text"
         )
 
     job_text = normalize_text(payload.job_description)
@@ -326,12 +307,18 @@ def analyze(payload: AnalyzeRequest):
             matched = sorted(job_skill_set & resume_skill_set)
             missing = sorted(job_skill_set - resume_skill_set)
 
-    suggestions_list = generate_suggestions(matched, missing)
-    if ai_used:
-        ai_suggestions = safe_list(ai_analysis.get("suggestions"))
-        if ai_suggestions:
-            suggestions_list = ai_suggestions
-    else:
+    suggestions_list = []
+
+    # If we have matched skills, use AI/generate_suggestions
+    if matched:
+        suggestions_list = generate_suggestions(matched, missing)
+        if ai_used:
+            ai_suggestions = safe_list(ai_analysis.get("suggestions"))
+            if ai_suggestions:
+                suggestions_list = ai_suggestions
+
+    # If NO matched skills or no suggestions yet, use role-based
+    if not suggestions_list:
         role_based = role_suggestions(job_text)
         if role_based:
             suggestions_list = role_based

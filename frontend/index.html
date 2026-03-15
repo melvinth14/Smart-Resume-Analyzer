@@ -484,108 +484,150 @@
         function showResults(data) {
             const container = document.getElementById('resultsContainer');
 
-            // Determine score color
             function getScoreColor(score) {
-                if (score >= 80) return '#4caf50'; // Green
-                if (score >= 60) return '#ff9800'; // Orange
-                return '#f44336'; // Red
+                if (score >= 80) return '#4caf50';
+                if (score >= 60) return '#ff9800';
+                return '#f44336';
             }
 
-            // Determine score interpretation
             function getScoreInterpretation(score) {
-                if (score >= 85) return '🎉 Excellent Match!';
-                if (score >= 75) return '✅ Good Match';
-                if (score >= 60) return '⚠️ Partial Match';
-                return '❌ Needs Improvement';
+                if (score >= 85) return 'Excellent Match!';
+                if (score >= 75) return 'Good Match';
+                if (score >= 60) return 'Partial Match';
+                return 'Needs Improvement';
+            }
+
+            function getScoreMessage(score) {
+                if (score >= 80) return 'Your resume strongly matches this job. Consider applying!';
+                if (score >= 60) return 'Your resume has good potential. Address the missing skills to improve your chances.';
+                return 'Your resume needs improvements in key areas. Focus on the suggestions below.';
             }
 
             const scoreColor = getScoreColor(data.ats_score);
+            const interpretation = getScoreInterpretation(data.ats_score);
+            const message = getScoreMessage(data.ats_score);
 
             let html = `
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; margin-bottom: 40px;">
-                    <!-- LEFT: ATS Score Circle -->
-                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; background: linear-gradient(135deg, ${scoreColor}, ${scoreColor}dd); border-radius: 15px; color: white;">
-                        <div style="font-size: 14px; opacity: 0.95; margin-bottom: 10px; font-weight: 500;">OVERALL ATS SCORE</div>
-                        <div style="font-size: 80px; font-weight: bold; line-height: 1;">${data.ats_score}</div>
-                        <div style="font-size: 18px; margin-top: 15px; text-align: center; opacity: 0.95;">${getScoreInterpretation(data.ats_score)}</div>
-                        <div style="font-size: 13px; margin-top: 20px; opacity: 0.85; text-align: center; line-height: 1.5;">How well your resume matches the job requirements</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+                    <!-- LEFT COLUMN: ATS SCORE & METRICS -->
+                    <div>
+                        <!-- Big ATS Score -->
+                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; background: linear-gradient(135deg, ${scoreColor}, ${scoreColor}dd); border-radius: 15px; color: white; margin-bottom: 25px;">
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">ATS Score</div>
+                            <div style="font-size: 90px; font-weight: bold; line-height: 1; margin: 10px 0;">${data.ats_score}%</div>
+                            <div style="font-size: 20px; margin-top: 12px; font-weight: 600; text-align: center;">${interpretation}</div>
+                            <div style="font-size: 14px; margin-top: 15px; opacity: 0.92; text-align: center; line-height: 1.6;">${message}</div>
+                        </div>
+
+                        <!-- Score Breakdown Details -->
+                        <div style="background: #f8f9fa; border-radius: 12px; padding: 20px;">
+                            <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Score Breakdown</h4>
+
+                            <div style="margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 13px; font-weight: 500; color: #333;">📋 Structure</span>
+                                    <span style="font-size: 15px; font-weight: 600; color: #667eea;">${data.structure_score}%</span>
+                                </div>
+                                <div style="background: #e0e0e0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                    <div style="background: #667eea; height: 100%; width: ${data.structure_score}%;"></div>
+                                </div>
+                                <div style="font-size: 11px; color: #999; margin-top: 4px;">How organized and well-formatted your resume is</div>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 13px; font-weight: 500; color: #333;">✍️ Content</span>
+                                    <span style="font-size: 15px; font-weight: 600; color: #667eea;">${data.content_score}%</span>
+                                </div>
+                                <div style="background: #e0e0e0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                    <div style="background: #667eea; height: 100%; width: ${data.content_score}%;"></div>
+                                </div>
+                                <div style="font-size: 11px; color: #999; margin-top: 4px;">How relevant your content is to the job</div>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 13px; font-weight: 500; color: #333;">🎯 Skills</span>
+                                    <span style="font-size: 15px; font-weight: 600; color: #667eea;">${data.skills_score}%</span>
+                                </div>
+                                <div style="background: #e0e0e0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                    <div style="background: #667eea; height: 100%; width: ${data.skills_score}%;"></div>
+                                </div>
+                                <div style="font-size: 11px; color: #999; margin-top: 4px;">How many required skills you have</div>
+                            </div>
+
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 13px; font-weight: 500; color: #333;">💬 Tone</span>
+                                    <span style="font-size: 15px; font-weight: 600; color: #667eea;">${data.tone_style_score}%</span>
+                                </div>
+                                <div style="background: #e0e0e0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                    <div style="background: #667eea; height: 100%; width: ${data.tone_style_score}%;"></div>
+                                </div>
+                                <div style="font-size: 11px; color: #999; margin-top: 4px;">Professionalism and writing quality</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- RIGHT: Score Breakdown Grid -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">📋 Structure</div>
-                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.structure_score}%</div>
-                            <div style="font-size: 12px; color: #999;">Organization & Format</div>
+                    <!-- RIGHT COLUMN: SKILLS & ANALYSIS -->
+                    <div>
+                        <!-- Matched Skills -->
+                        <div style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left: 5px solid #4caf50; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <span style="font-size: 20px; margin-right: 10px;">✅</span>
+                                <h4 style="margin: 0; color: #2e7d32; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Matched Skills (${data.matched_skills?.length || 0})</h4>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${(data.matched_skills && data.matched_skills.length > 0) ?
+                                    data.matched_skills.map(skill => `<span style="background: #4caf50; color: white; padding: 6px 12px; border-radius: 18px; font-size: 12px; font-weight: 500;">${skill}</span>`).join('')
+                                    : '<div style="color: #999; font-size: 13px;">No matched skills detected - focus on adding required skills below</div>'
+                                }
+                            </div>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(76, 175, 80, 0.2); font-size: 12px; color: #2e7d32;">
+                                These are skills you have that the job is looking for. Highlight these in your resume!
+                            </div>
                         </div>
 
-                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">✍️ Content</div>
-                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.content_score}%</div>
-                            <div style="font-size: 12px; color: #999;">Relevance & Match</div>
-                        </div>
-
-                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🎯 Skills</div>
-                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.skills_score}%</div>
-                            <div style="font-size: 12px; color: #999;">Technical Match</div>
-                        </div>
-
-                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">💬 Tone</div>
-                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.tone_style_score}%</div>
-                            <div style="font-size: 12px; color: #999;">Professionalism</div>
+                        <!-- Missing Skills -->
+                        <div style="background: linear-gradient(135deg, #ffebee, #ffe0e6); border-left: 5px solid #f44336; border-radius: 12px; padding: 20px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <span style="font-size: 20px; margin-right: 10px;">⚠️</span>
+                                <h4 style="margin: 0; color: #c62828; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Missing Skills (${data.missing_skills?.length || 0})</h4>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${(data.missing_skills && data.missing_skills.length > 0) ?
+                                    data.missing_skills.map(skill => `<span style="background: #f44336; color: white; padding: 6px 12px; border-radius: 18px; font-size: 12px; font-weight: 500;">${skill}</span>`).join('')
+                                    : '<div style="color: #999; font-size: 13px;">Great! You have all the required skills!</div>'
+                                }
+                            </div>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(244, 67, 54, 0.2); font-size: 12px; color: #c62828;">
+                                ${(data.missing_skills && data.missing_skills.length > 0) ?
+                                    'These skills are required or preferred. Consider learning them or adding related experience.'
+                                    : 'Perfect match for required skills!'
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Skills Section -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 35px;">
-                    <!-- Matched Skills -->
-                    <div style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left: 5px solid #4caf50; border-radius: 10px; padding: 25px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                            <span style="font-size: 24px; margin-right: 10px;">✅</span>
-                            <h3 style="margin: 0; color: #2e7d32; font-size: 16px; font-weight: 600;">Matched Skills</h3>
-                            <span style="margin-left: auto; background: #4caf50; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600;">${data.matched_skills?.length || 0}</span>
-                        </div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                            ${(data.matched_skills && data.matched_skills.length > 0) ?
-                                data.matched_skills.map(skill => `<span style="background: #4caf50; color: white; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">${skill}</span>`).join('')
-                                : '<div style="color: #999; font-size: 13px;">No matched skills found</div>'
-                            }
-                        </div>
-                    </div>
-
-                    <!-- Missing Skills -->
-                    <div style="background: linear-gradient(135deg, #ffebee, #ffe0e6); border-left: 5px solid #f44336; border-radius: 10px; padding: 25px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                            <span style="font-size: 24px; margin-right: 10px;">❌</span>
-                            <h3 style="margin: 0; color: #c62828; font-size: 16px; font-weight: 600;">Missing Skills</h3>
-                            <span style="margin-left: auto; background: #f44336; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600;">${data.missing_skills?.length || 0}</span>
-                        </div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                            ${(data.missing_skills && data.missing_skills.length > 0) ?
-                                data.missing_skills.map(skill => `<span style="background: #f44336; color: white; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">${skill}</span>`).join('')
-                                : '<div style="color: #999; font-size: 13px;">No missing skills - great job!</div>'
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Improvement Suggestions -->
-                <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-left: 5px solid #ff9800; border-radius: 10px; padding: 25px; margin-bottom: 25px;">
+                <!-- IMPROVEMENT SUGGESTIONS (Full Width) -->
+                <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-left: 5px solid #ff9800; border-radius: 12px; padding: 25px; margin-bottom: 25px;">
                     <div style="display: flex; align-items: center; margin-bottom: 15px;">
                         <span style="font-size: 24px; margin-right: 10px;">💡</span>
-                        <h3 style="margin: 0; color: #e65100; font-size: 16px; font-weight: 600;">Improvement Suggestions</h3>
+                        <h3 style="margin: 0; color: #e65100; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">How to Improve Your Resume</h3>
                     </div>
+                    <p style="color: #666; font-size: 13px; margin: 0 0 15px 0; line-height: 1.6;">
+                        Follow these actionable suggestions to increase your ATS score and improve your chances of getting the job.
+                    </p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         ${(data.suggestions && data.suggestions.length > 0) ?
-                            data.suggestions.map(s => `
-                                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 3px solid #ff9800;">
-                                    <div style="color: #333; font-size: 14px; line-height: 1.5;">${s.replace(/^\d+\.\s*/, '')}</div>
+                            data.suggestions.map((s, idx) => `
+                                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800;">
+                                    <div style="font-size: 12px; font-weight: 600; color: #ff9800; margin-bottom: 6px;">Suggestion ${idx + 1}</div>
+                                    <div style="color: #333; font-size: 13px; line-height: 1.5;">${s.replace(/^\d+\.\s*/, '')}</div>
                                 </div>
                             `).join('')
-                            : '<div style="color: #999; font-size: 14px; grid-column: 1/-1;">No suggestions - your resume is well-optimized!</div>'
+                            : '<div style="color: #999; font-size: 13px; grid-column: 1/-1;">Your resume is well-optimized! No suggestions at this time.</div>'
                         }
                     </div>
                 </div>
@@ -593,7 +635,7 @@
                 <!-- AI Badge -->
                 ${data.ai_used ? `
                     <div style="background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-left: 5px solid #7c4dff; border-radius: 10px; padding: 15px 20px; text-align: center; color: #512da8; font-size: 13px; font-weight: 500;">
-                        ✨ Analysis powered by Google Gemini AI
+                        ✨ Analysis powered by Google Gemini AI for enhanced accuracy
                     </div>
                 ` : ''}
             `;
