@@ -340,20 +340,10 @@
             <div id="analyzerPage" class="page active">
                 <form class="analyzer-form" onsubmit="analyzeResume(event)">
                     <div class="form-group">
-                        <label>📄 Your Resume (Optional: Upload OR Paste One)</label>
-
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <div style="flex: 1;">
-                                <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 14px; font-weight: bold;">📤 Option 1: Upload PDF</h4>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" />
-                                    <span class="file-name" id="fileName">No file selected</span>
-                                </div>
-                            </div>
-                            <div style="flex: 1;">
-                                <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 14px; font-weight: bold;">📝 Option 2: Paste Text</h4>
-                                <textarea id="resume" placeholder="Paste your resume text here..." style="resize: none; min-height: 80px;"></textarea>
-                            </div>
+                        <label style="color: #d32f2f; font-weight: bold;">📄 Your Resume (REQUIRED)</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" required />
+                            <span class="file-name" id="fileName">No file selected</span>
                         </div>
                     </div>
 
@@ -370,10 +360,10 @@
                 <div class="tips">
                     <h3>💡 How It Works</h3>
                     <ul>
-                        <li><strong>Resume:</strong> Upload a PDF or paste text (at least one required)</li>
+                        <li><strong>Resume:</strong> Upload your resume as PDF file (required)</li>
                         <li><strong>Job Description:</strong> Paste the job posting you want to apply to (required)</li>
-                        <li><strong>Analysis:</strong> AI compares your resume against the job and gives you an ATS score</li>
-                        <li><strong>Suggestions:</strong> Get personalized recommendations to improve your match</li>
+                        <li><strong>Analysis:</strong> AI extracts info and compares against job requirements</li>
+                        <li><strong>Results:</strong> Get ATS score, matched skills, and improvement suggestions</li>
                     </ul>
                 </div>
             </div>
@@ -402,16 +392,15 @@
             event.preventDefault();
 
             const resumeFile = document.getElementById('resumeFile').files[0];
-            const resumeText = document.getElementById('resume').value.trim();
             const jobDescription = document.getElementById('job').value.trim();
             const errorMsg = document.getElementById('errorMsg');
             const submitBtn = document.getElementById('submitBtn');
 
             errorMsg.classList.remove('show');
 
-            // Check if either PDF file or text is provided
-            if (!resumeFile && !resumeText) {
-                errorMsg.textContent = '❌ Resume Required: Upload a PDF file OR paste text below';
+            // Check if PDF file is provided
+            if (!resumeFile) {
+                errorMsg.textContent = '❌ Resume Required: Upload a PDF file';
                 errorMsg.classList.add('show');
                 return;
             }
@@ -426,19 +415,14 @@
             submitBtn.textContent = 'Analyzing...';
 
             try {
+                // Encode PDF to base64
+                console.log(`📄 Processing PDF file: ${resumeFile.name}`);
+                const resumeFileBase64 = await readFileAsBase64(resumeFile);
+
                 let payload = {
                     job_description: jobDescription,
+                    resume_file: resumeFileBase64
                 };
-
-                // If PDF file is selected, read it as base64
-                if (resumeFile) {
-                    console.log(`📄 Processing PDF file: ${resumeFile.name}`);
-                    payload.resume_file = await readFileAsBase64(resumeFile);
-                } else {
-                    // Otherwise use the text
-                    console.log(`📝 Processing resume text (${resumeText.length} characters)`);
-                    payload.resume_text = resumeText;
-                }
 
                 console.log('🔄 Sending request to backend...');
                 const response = await fetch(`${API_URL}/analyze`, {
@@ -543,12 +527,12 @@
                 </div>
             `;
 
-            if (data.suggestions) {
+            if (data.suggestions && data.suggestions.length > 0) {
                 html += `
                     <div class="suggestions-section">
                         <h3>💡 Improvement Suggestions</h3>
                         <ul>
-                            ${data.suggestions.split('\n').map(s => s.trim()).filter(s => s).map(s => `<li>${s.replace(/^\d+\.\s*/, '')}</li>`).join('')}
+                            ${data.suggestions.map(s => `<li>${s.replace(/^\d+\.\s*/, '')}</li>`).join('')}
                         </ul>
                     </div>
                 `;
@@ -567,7 +551,6 @@
         function goBack() {
             document.getElementById('analyzerPage').classList.add('active');
             document.getElementById('resultsPage').classList.remove('active');
-            document.getElementById('resume').value = '';
             document.getElementById('job').value = '';
             document.getElementById('resumeFile').value = '';
             document.getElementById('fileName').textContent = 'No file selected';
