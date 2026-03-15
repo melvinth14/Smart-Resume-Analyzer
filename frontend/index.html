@@ -340,25 +340,25 @@
             <div id="analyzerPage" class="page active">
                 <form class="analyzer-form" onsubmit="analyzeResume(event)">
                     <div class="form-group">
-                        <label>📄 Your Resume (Choose One Option)</label>
+                        <label>📄 Your Resume (Optional: Upload OR Paste One)</label>
 
                         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                             <div style="flex: 1;">
-                                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">📤 Option 1: Upload PDF</h4>
+                                <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 14px; font-weight: bold;">📤 Option 1: Upload PDF</h4>
                                 <div class="file-input-wrapper">
                                     <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" />
                                     <span class="file-name" id="fileName">No file selected</span>
                                 </div>
                             </div>
                             <div style="flex: 1;">
-                                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">📝 Option 2: Paste Text</h4>
+                                <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 14px; font-weight: bold;">📝 Option 2: Paste Text</h4>
                                 <textarea id="resume" placeholder="Paste your resume text here..." style="resize: none; min-height: 80px;"></textarea>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="job">💼 Job Description</label>
+                        <label for="job" style="color: #d32f2f; font-weight: bold;">💼 Job Description (REQUIRED)</label>
                         <textarea id="job" placeholder="Paste the job description here..." required></textarea>
                     </div>
 
@@ -368,11 +368,12 @@
                 </form>
 
                 <div class="tips">
-                    <h3>💡 Tips</h3>
+                    <h3>💡 How It Works</h3>
                     <ul>
-                        <li>Copy your resume from a text file or PDF converter</li>
-                        <li>Paste the complete job description</li>
-                        <li>The AI will match your skills and suggest improvements</li>
+                        <li><strong>Resume:</strong> Upload a PDF or paste text (at least one required)</li>
+                        <li><strong>Job Description:</strong> Paste the job posting you want to apply to (required)</li>
+                        <li><strong>Analysis:</strong> AI compares your resume against the job and gives you an ATS score</li>
+                        <li><strong>Suggestions:</strong> Get personalized recommendations to improve your match</li>
                     </ul>
                 </div>
             </div>
@@ -410,13 +411,13 @@
 
             // Check if either PDF file or text is provided
             if (!resumeFile && !resumeText) {
-                errorMsg.textContent = '❌ Please upload a PDF file OR paste your resume text (choose one option)';
+                errorMsg.textContent = '❌ Resume Required: Upload a PDF file OR paste text below';
                 errorMsg.classList.add('show');
                 return;
             }
 
             if (!jobDescription) {
-                errorMsg.textContent = '❌ Please paste the job description';
+                errorMsg.textContent = '❌ Job Description Required: Paste the job description you\'re applying for';
                 errorMsg.classList.add('show');
                 return;
             }

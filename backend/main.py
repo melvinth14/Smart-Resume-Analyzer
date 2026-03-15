@@ -246,37 +246,55 @@ def safe_score(value, fallback: int) -> int:
 
 @app.post("/analyze")
 def analyze(payload: AnalyzeRequest):
+    # Validate job description (only truly required field)
     if not payload.job_description.strip():
-        raise HTTPException(status_code=400, detail="job_description is required")
+        raise HTTPException(status_code=400, detail="Job description is required")
 
-    resume_text = normalize_text(payload.resume_text or "")
+    resume_text = ""
 
-    # Handle base64 encoded PDF file
-    if not resume_text and payload.resume_file:
+    # Priority 1: Handle base64 encoded PDF file (preferred)
+    if payload.resume_file:
         try:
-            # Decode base64 to PDF bytes
             pdf_bytes = base64.b64decode(payload.resume_file)
             resume_text = normalize_text(extract_text_from_pdf(pdf_bytes))
             if not resume_text:
                 raise HTTPException(
-                    status_code=400, detail="Resume text could not be extracted from PDF"
+                    status_code=400, detail="Could not extract text from PDF. Try pasting text instead."
                 )
+        except HTTPException:
+            raise
         except Exception as exc:
             raise HTTPException(
-                status_code=400, detail=f"Failed to process PDF file: {str(exc)}"
+                status_code=400, detail=f"PDF processing failed: {str(exc)}. Try pasting text instead."
             )
 
-    if not resume_text:
-        if not payload.resume_url:
+    # Priority 2: Handle pasted resume text
+    elif payload.resume_text:
+        resume_text = normalize_text(payload.resume_text)
+        if not resume_text.strip():
+            raise HTTPException(status_code=400, detail="Resume text cannot be empty")
+
+    # Priority 3: Handle resume URL
+    elif payload.resume_url:
+        try:
+            pdf_bytes = download_pdf(str(payload.resume_url))
+            resume_text = normalize_text(extract_text_from_pdf(pdf_bytes))
+            if not resume_text:
+                raise HTTPException(
+                    status_code=400, detail="Could not extract text from URL. Try uploading or pasting instead."
+                )
+        except HTTPException:
+            raise
+        except Exception as exc:
             raise HTTPException(
-                status_code=400, detail="Please upload a PDF, paste text, or provide a resume URL"
+                status_code=400, detail=f"URL processing failed: {str(exc)}"
             )
-        pdf_bytes = download_pdf(str(payload.resume_url))
-        resume_text = normalize_text(extract_text_from_pdf(pdf_bytes))
-        if not resume_text:
-            raise HTTPException(
-                status_code=400, detail="Resume text could not be extracted"
-            )
+
+    # No resume provided at all
+    else:
+        raise HTTPException(
+            status_code=400, detail="Please provide resume: upload PDF file or paste text"
+        )
 
     job_text = normalize_text(payload.job_description)
 
