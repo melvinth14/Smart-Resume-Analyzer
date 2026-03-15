@@ -1,13 +1,576 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 40px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px 20px;
+            background: white;
+            margin: 20px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .analyzer-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        textarea {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 150px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .submit-btn, .back-btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover:not(:disabled), .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            padding: 12px 16px;
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .tips {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            margin-top: 20px;
+        }
+
+        .tips h3 {
+            margin: 0 0 12px 0;
+            color: #2e7d32;
+        }
+
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin: 6px 0;
+            color: #333;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .file-name {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .divider {
+            text-align: center;
+            color: #999;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .score-card {
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .score-card.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .score-card h2, .score-card h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .big-score {
+            font-size: 64px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .big-score span {
+            font-size: 32px;
+            margin-left: 5px;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .score-card:not(.primary) {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+        }
+
+        .score {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+
+        .skills-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .skills-box {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .skills-box h3 {
+            margin: 0 0 15px 0;
+        }
+
+        .skills-box.matched {
+            border-left: 4px solid #4CAF50;
+            background: #f1f8f5;
+        }
+
+        .skills-box.matched h3 {
+            color: #2e7d32;
+        }
+
+        .skills-box.missing {
+            border-left: 4px solid #f44336;
+            background: #fef5f5;
+        }
+
+        .skills-box.missing h3 {
+            color: #c62828;
+        }
+
+        .skills-box ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skills-box li {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+        }
+
+        .skills-box.matched li {
+            border-color: #4CAF50;
+            background: #f1f8f5;
+        }
+
+        .skills-box.missing li {
+            border-color: #f44336;
+            background: #fef5f5;
+        }
+
+        .suggestions-section {
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 10px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .suggestions-section h3 {
+            margin: 0 0 15px 0;
+            color: #e65100;
+        }
+
+        .suggestions-section ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .suggestions-section li {
+            margin: 8px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>📄 Resume Analyzer</h1>
+            <p>AI-powered resume analysis and job matching</p>
+        </header>
+
+        <main class="main-content">
+            <div id="analyzerPage" class="page active">
+                <form class="analyzer-form" onsubmit="analyzeResume(event)">
+                    <div class="form-group">
+                        <label>📄 Your Resume (Choose One Option)</label>
+
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">📤 Option 1: Upload PDF</h4>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" />
+                                    <span class="file-name" id="fileName">No file selected</span>
+                                </div>
+                            </div>
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">📝 Option 2: Paste Text</h4>
+                                <textarea id="resume" placeholder="Paste your resume text here..." style="resize: none; min-height: 80px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="job">💼 Job Description</label>
+                        <textarea id="job" placeholder="Paste the job description here..." required></textarea>
+                    </div>
+
+                    <div class="error-message" id="errorMsg"></div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">Analyze Resume</button>
+                </form>
+
+                <div class="tips">
+                    <h3>💡 Tips</h3>
+                    <ul>
+                        <li>Copy your resume from a text file or PDF converter</li>
+                        <li>Paste the complete job description</li>
+                        <li>The AI will match your skills and suggest improvements</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="resultsPage" class="page">
+                <button class="back-btn" onclick="goBack()">← Back to Analyzer</button>
+                <div class="results-container" id="resultsContainer"></div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 Smart Resume Analyzer</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        // Handle file selection
+        document.getElementById('resumeFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file selected';
+            document.getElementById('fileName').textContent = fileName;
+        });
+
+        async function analyzeResume(event) {
+            event.preventDefault();
+
+            const resumeFile = document.getElementById('resumeFile').files[0];
+            const resumeText = document.getElementById('resume').value.trim();
+            const jobDescription = document.getElementById('job').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const submitBtn = document.getElementById('submitBtn');
+
+            errorMsg.classList.remove('show');
+
+            // Check if either PDF file or text is provided
+            if (!resumeFile && !resumeText) {
+                errorMsg.textContent = '❌ Please upload a PDF file OR paste your resume text (choose one option)';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            if (!jobDescription) {
+                errorMsg.textContent = '❌ Please paste the job description';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Analyzing...';
+
+            try {
+                let payload = {
+                    job_description: jobDescription,
+                };
+
+                // If PDF file is selected, read it as base64
+                if (resumeFile) {
+                    console.log(`📄 Processing PDF file: ${resumeFile.name}`);
+                    payload.resume_file = await readFileAsBase64(resumeFile);
+                } else {
+                    // Otherwise use the text
+                    console.log(`📝 Processing resume text (${resumeText.length} characters)`);
+                    payload.resume_text = resumeText;
+                }
+
+                console.log('🔄 Sending request to backend...');
+                const response = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    let errorDetail = 'Analysis failed';
+                    try {
+                        const error = await response.json();
+                        errorDetail = error.detail || error.message || errorDetail;
+                    } catch (e) {
+                        errorDetail = `Server error (HTTP ${response.status})`;
+                    }
+                    throw new Error(errorDetail);
+                }
+
+                const data = await response.json();
+                console.log('✅ Analysis complete!', data);
+                showResults(data);
+            } catch (error) {
+                console.error('Error:', error);
+                let userMessage = error.message;
+
+                // Provide helpful error messages
+                if (error.message.includes('Failed to fetch')) {
+                    userMessage = '❌ Cannot connect to backend. Make sure the backend server is running on localhost:8000';
+                } else if (error.message.includes('JSON')) {
+                    userMessage = '❌ Backend returned invalid response. Check your internet and try again.';
+                } else {
+                    userMessage = `❌ ${userMessage}`;
+                }
+
+                errorMsg.textContent = userMessage;
+                errorMsg.classList.add('show');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Analyze Resume';
+            }
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    // Convert to base64 string (remove data:application/pdf;base64, prefix)
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function showResults(data) {
+            const container = document.getElementById('resultsContainer');
+
+            let html = `
+                <div class="score-card primary">
+                    <h2>Overall ATS Score</h2>
+                    <div class="big-score">${data.ats_score}<span>%</span></div>
+                    <p>How well your resume matches the job description</p>
+                </div>
+
+                <div class="scores-grid">
+                    <div class="score-card">
+                        <h3>📋 Structure</h3>
+                        <div class="score">${data.structure_score}%</div>
+                    </div>
+                    <div class="score-card">
+                        <h3>✍️ Content</h3>
+                        <div class="score">${data.content_score}%</div>
+                    </div>
+                    <div class="score-card">
+                        <h3>🎯 Skills Match</h3>
+                        <div class="score">${data.skills_score}%</div>
+                    </div>
+                    <div class="score-card">
+                        <h3>💬 Tone & Style</h3>
+                        <div class="score">${data.tone_style_score}%</div>
+                    </div>
+                </div>
+
+                <div class="skills-section">
+                    <div class="skills-box matched">
+                        <h3>✅ Matched Skills (${data.matched_skills?.length || 0})</h3>
+                        <ul>
+                            ${data.matched_skills?.map(skill => `<li>${skill}</li>`).join('') || '<li>None</li>'}
+                        </ul>
+                    </div>
+
+                    <div class="skills-box missing">
+                        <h3>❌ Missing Skills (${data.missing_skills?.length || 0})</h3>
+                        <ul>
+                            ${data.missing_skills?.map(skill => `<li>${skill}</li>`).join('') || '<li>None</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            if (data.suggestions) {
+                html += `
+                    <div class="suggestions-section">
+                        <h3>💡 Improvement Suggestions</h3>
+                        <ul>
+                            ${data.suggestions.split('\n').map(s => s.trim()).filter(s => s).map(s => `<li>${s.replace(/^\d+\.\s*/, '')}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            if (data.ai_used) {
+                html += '<div style="padding: 15px; background: #e8f5e9; border-radius: 8px; color: #2e7d32; margin-top: 20px;">✨ Analysis powered by Gemini AI</div>';
+            }
+
+            container.innerHTML = html;
+
+            document.getElementById('analyzerPage').classList.remove('active');
+            document.getElementById('resultsPage').classList.add('active');
+        }
+
+        function goBack() {
+            document.getElementById('analyzerPage').classList.add('active');
+            document.getElementById('resultsPage').classList.remove('active');
+            document.getElementById('resume').value = '';
+            document.getElementById('job').value = '';
+            document.getElementById('resumeFile').value = '';
+            document.getElementById('fileName').textContent = 'No file selected';
+        }
+    </script>
+</body>
 </html>

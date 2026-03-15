@@ -2,6 +2,7 @@ import io
 import os
 import re
 import urllib.request
+import base64
 from typing import Optional
 from uuid import UUID
 
@@ -44,6 +45,7 @@ class AnalyzeRequest(BaseModel):
     resume_url: HttpUrl | None = None
     job_description: str
     resume_text: str | None = None
+    resume_file: str | None = None
     resume_id: Optional[UUID] = None
 
 
@@ -237,10 +239,26 @@ def analyze(payload: AnalyzeRequest):
         raise HTTPException(status_code=400, detail="job_description is required")
 
     resume_text = normalize_text(payload.resume_text or "")
+
+    # Handle base64 encoded PDF file
+    if not resume_text and payload.resume_file:
+        try:
+            # Decode base64 to PDF bytes
+            pdf_bytes = base64.b64decode(payload.resume_file)
+            resume_text = normalize_text(extract_text_from_pdf(pdf_bytes))
+            if not resume_text:
+                raise HTTPException(
+                    status_code=400, detail="Resume text could not be extracted from PDF"
+                )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=400, detail=f"Failed to process PDF file: {str(exc)}"
+            )
+
     if not resume_text:
         if not payload.resume_url:
             raise HTTPException(
-                status_code=400, detail="resume_url or resume_text is required"
+                status_code=400, detail="Please upload a PDF, paste text, or provide a resume URL"
             )
         pdf_bytes = download_pdf(str(payload.resume_url))
         resume_text = normalize_text(extract_text_from_pdf(pdf_bytes))
