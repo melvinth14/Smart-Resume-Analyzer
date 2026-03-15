@@ -484,63 +484,119 @@
         function showResults(data) {
             const container = document.getElementById('resultsContainer');
 
+            // Determine score color
+            function getScoreColor(score) {
+                if (score >= 80) return '#4caf50'; // Green
+                if (score >= 60) return '#ff9800'; // Orange
+                return '#f44336'; // Red
+            }
+
+            // Determine score interpretation
+            function getScoreInterpretation(score) {
+                if (score >= 85) return '🎉 Excellent Match!';
+                if (score >= 75) return '✅ Good Match';
+                if (score >= 60) return '⚠️ Partial Match';
+                return '❌ Needs Improvement';
+            }
+
+            const scoreColor = getScoreColor(data.ats_score);
+
             let html = `
-                <div class="score-card primary">
-                    <h2>Overall ATS Score</h2>
-                    <div class="big-score">${data.ats_score}<span>%</span></div>
-                    <p>How well your resume matches the job description</p>
-                </div>
-
-                <div class="scores-grid">
-                    <div class="score-card">
-                        <h3>📋 Structure</h3>
-                        <div class="score">${data.structure_score}%</div>
-                    </div>
-                    <div class="score-card">
-                        <h3>✍️ Content</h3>
-                        <div class="score">${data.content_score}%</div>
-                    </div>
-                    <div class="score-card">
-                        <h3>🎯 Skills Match</h3>
-                        <div class="score">${data.skills_score}%</div>
-                    </div>
-                    <div class="score-card">
-                        <h3>💬 Tone & Style</h3>
-                        <div class="score">${data.tone_style_score}%</div>
-                    </div>
-                </div>
-
-                <div class="skills-section">
-                    <div class="skills-box matched">
-                        <h3>✅ Matched Skills (${data.matched_skills?.length || 0})</h3>
-                        <ul>
-                            ${data.matched_skills?.map(skill => `<li>${skill}</li>`).join('') || '<li>None</li>'}
-                        </ul>
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; margin-bottom: 40px;">
+                    <!-- LEFT: ATS Score Circle -->
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; background: linear-gradient(135deg, ${scoreColor}, ${scoreColor}dd); border-radius: 15px; color: white;">
+                        <div style="font-size: 14px; opacity: 0.95; margin-bottom: 10px; font-weight: 500;">OVERALL ATS SCORE</div>
+                        <div style="font-size: 80px; font-weight: bold; line-height: 1;">${data.ats_score}</div>
+                        <div style="font-size: 18px; margin-top: 15px; text-align: center; opacity: 0.95;">${getScoreInterpretation(data.ats_score)}</div>
+                        <div style="font-size: 13px; margin-top: 20px; opacity: 0.85; text-align: center; line-height: 1.5;">How well your resume matches the job requirements</div>
                     </div>
 
-                    <div class="skills-box missing">
-                        <h3>❌ Missing Skills (${data.missing_skills?.length || 0})</h3>
-                        <ul>
-                            ${data.missing_skills?.map(skill => `<li>${skill}</li>`).join('') || '<li>None</li>'}
-                        </ul>
+                    <!-- RIGHT: Score Breakdown Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">📋 Structure</div>
+                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.structure_score}%</div>
+                            <div style="font-size: 12px; color: #999;">Organization & Format</div>
+                        </div>
+
+                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">✍️ Content</div>
+                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.content_score}%</div>
+                            <div style="font-size: 12px; color: #999;">Relevance & Match</div>
+                        </div>
+
+                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🎯 Skills</div>
+                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.skills_score}%</div>
+                            <div style="font-size: 12px; color: #999;">Technical Match</div>
+                        </div>
+
+                        <div style="background: white; border: 2px solid #667eea; border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">💬 Tone</div>
+                            <div style="font-size: 42px; font-weight: bold; color: #667eea; margin-bottom: 8px;">${data.tone_style_score}%</div>
+                            <div style="font-size: 12px; color: #999;">Professionalism</div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Skills Section -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 35px;">
+                    <!-- Matched Skills -->
+                    <div style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left: 5px solid #4caf50; border-radius: 10px; padding: 25px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <span style="font-size: 24px; margin-right: 10px;">✅</span>
+                            <h3 style="margin: 0; color: #2e7d32; font-size: 16px; font-weight: 600;">Matched Skills</h3>
+                            <span style="margin-left: auto; background: #4caf50; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600;">${data.matched_skills?.length || 0}</span>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            ${(data.matched_skills && data.matched_skills.length > 0) ?
+                                data.matched_skills.map(skill => `<span style="background: #4caf50; color: white; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">${skill}</span>`).join('')
+                                : '<div style="color: #999; font-size: 13px;">No matched skills found</div>'
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Missing Skills -->
+                    <div style="background: linear-gradient(135deg, #ffebee, #ffe0e6); border-left: 5px solid #f44336; border-radius: 10px; padding: 25px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <span style="font-size: 24px; margin-right: 10px;">❌</span>
+                            <h3 style="margin: 0; color: #c62828; font-size: 16px; font-weight: 600;">Missing Skills</h3>
+                            <span style="margin-left: auto; background: #f44336; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600;">${data.missing_skills?.length || 0}</span>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            ${(data.missing_skills && data.missing_skills.length > 0) ?
+                                data.missing_skills.map(skill => `<span style="background: #f44336; color: white; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">${skill}</span>`).join('')
+                                : '<div style="color: #999; font-size: 13px;">No missing skills - great job!</div>'
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Improvement Suggestions -->
+                <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-left: 5px solid #ff9800; border-radius: 10px; padding: 25px; margin-bottom: 25px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 24px; margin-right: 10px;">💡</span>
+                        <h3 style="margin: 0; color: #e65100; font-size: 16px; font-weight: 600;">Improvement Suggestions</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        ${(data.suggestions && data.suggestions.length > 0) ?
+                            data.suggestions.map(s => `
+                                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 3px solid #ff9800;">
+                                    <div style="color: #333; font-size: 14px; line-height: 1.5;">${s.replace(/^\d+\.\s*/, '')}</div>
+                                </div>
+                            `).join('')
+                            : '<div style="color: #999; font-size: 14px; grid-column: 1/-1;">No suggestions - your resume is well-optimized!</div>'
+                        }
+                    </div>
+                </div>
+
+                <!-- AI Badge -->
+                ${data.ai_used ? `
+                    <div style="background: linear-gradient(135deg, #e8eaf6, #f3e5f5); border-left: 5px solid #7c4dff; border-radius: 10px; padding: 15px 20px; text-align: center; color: #512da8; font-size: 13px; font-weight: 500;">
+                        ✨ Analysis powered by Google Gemini AI
+                    </div>
+                ` : ''}
             `;
-
-            if (data.suggestions && data.suggestions.length > 0) {
-                html += `
-                    <div class="suggestions-section">
-                        <h3>💡 Improvement Suggestions</h3>
-                        <ul>
-                            ${data.suggestions.map(s => `<li>${s.replace(/^\d+\.\s*/, '')}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-            }
-
-            if (data.ai_used) {
-                html += '<div style="padding: 15px; background: #e8f5e9; border-radius: 8px; color: #2e7d32; margin-top: 20px;">✨ Analysis powered by Gemini AI</div>';
-            }
 
             container.innerHTML = html;
 
