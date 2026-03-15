@@ -3,3 +3,4 @@ uvicorn
 pdfplumber
 python-dotenv
 requests
+spacy
