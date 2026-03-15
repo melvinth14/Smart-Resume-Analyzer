@@ -3,7 +3,7 @@ REM Smart Resume Analyzer - Quick Start Script for Windows
 
 echo.
 echo ========================================
-echo SmartResume Analyzer - Starting App
+echo Smart Resume Analyzer - Starting App
 echo ========================================
 echo.
 
@@ -46,27 +46,29 @@ echo 📌 API Docs: http://localhost:8000/docs
 echo.
 
 REM Start backend in a new window
-start cmd /k "cd backend && .venv\Scripts\activate && uvicorn main:app --reload --port 8000"
+start "Resume Analyzer Backend" cmd /k "cd /d %cd%\backend && .venv\Scripts\activate.bat && uvicorn main:app --reload --port 8000"
 timeout /t 3 /nobreak
 
 REM Start frontend in a new window
-start cmd /k "cd frontend && python -m http.server 3000"
+start "Resume Analyzer Frontend" cmd /k "cd /d %cd%\frontend && python -m http.server 3000"
 timeout /t 2 /nobreak
 
 REM Try to open browser
+echo Opening browser...
 start http://localhost:3000
 
 echo.
 echo ✅ Application started!
-echo Waiting for services to initialize...
-timeout /t 5 /nobreak
-
 echo.
 echo 💡 Tips:
-echo - Wait 5 seconds for both servers to start
-echo - If browser doesn't open, visit http://localhost:3000 manually
-echo - Use browser console (F12) to see detailed errors
-echo - Close command windows to stop the application
+echo - Both command windows should be running now
+echo - Wait 5 seconds for servers to fully initialize
+echo - If browser doesn't open, manually visit: http://localhost:3000
+echo - Use browser console (F12 key) to see detailed errors
+echo - Close the command windows to stop the application
+echo.
+echo Backend logs will appear in the first window
+echo Frontend logs will appear in the second window
 echo.
 
 pause
