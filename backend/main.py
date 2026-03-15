@@ -41,6 +41,17 @@ app.add_middleware(
 )
 
 
+# Health check endpoint for testing
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "message": "Backend is running and ready",
+        "endpoint": "POST /analyze",
+        "gemini_key_set": bool(os.getenv("AI_API_KEY", "").strip()),
+    }
+
+
 class AnalyzeRequest(BaseModel):
     resume_url: HttpUrl | None = None
     job_description: str
